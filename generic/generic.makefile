@@ -1,0 +1,8 @@
+CSRC += $(GENERICDIR)/wave.c
+
+INCLUDES += $(GENERICDIR)
+
+$(BUILD)/$(GENERICDIR):
+	$(V)mkdir -p $@
+
+BUILDDIRS += $(BUILD)/$(GENERICDIR)

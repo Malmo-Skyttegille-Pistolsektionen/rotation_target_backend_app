@@ -1,0 +1,6 @@
+[submodule "libs/wslay"]
+	path = libs/wslay
+	url = https://github.com/tatsuhiro-t/wslay
+[submodule "libs/corejson"]
+	path = libs/corejson
+	url = https://github.com/FreeRTOS/coreJSON.git
