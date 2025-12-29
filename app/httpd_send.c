@@ -11,6 +11,7 @@
 
 #define CONNECTION_CLOSE   "Connection: close\n"
 #define CONTENT_LENGTH     "Content-Length: "
+#define CORS_ACL_ORIGIN    "Access-Control-Allow-Origin: *\n"
 
 #define CONTENT_TYPE       "Content-Type: "
 #define CONTENT_TYPE_TEXT  "text/plain"
@@ -28,6 +29,7 @@ void httpd_send_header_ok(network_client_t* client)
     httpd_send_string(client, HTTP_1_1);
     httpd_send_string(client, HTTP_200_OK);
     httpd_send_string(client, CONNECTION_CLOSE);
+    httpd_send_string(client, CORS_ACL_ORIGIN);
 }
 
 void httpd_send_header_error(network_client_t* client, int error_code)
