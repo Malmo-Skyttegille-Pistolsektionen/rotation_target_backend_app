@@ -15,7 +15,8 @@ typedef struct {
 } program_info_t;
 
 error_code_t programs_read(program_id_t id, void* buffer, uint32_t* length, uint32_t offset);
-error_code_t programs_get(program_id_t id,  const void** buffer, uint32_t* length);
+error_code_t programs_get_by_id(program_id_t id,  const void** buffer, uint32_t* length);
+error_code_t programs_get_by_index(uint32_t index, program_id_t* id, const void** buffer, uint32_t* length);
 error_code_t programs_get_size(program_id_t id,  uint32_t* size);
 error_code_t programs_get_info(uint32_t index, program_info_t* info);
 error_code_t programs_get_count(uint32_t* count);

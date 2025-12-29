@@ -629,7 +629,7 @@ error_code_t program_load(program_id_t id)
 
   printf("Load %d\n", id);
 
-  res = programs_get(id, &buffer, &length);
+  res = programs_get_by_id(id, &buffer, &length);
   if (res != ERROR_CODE_OK)
   {
       return res;

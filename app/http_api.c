@@ -25,12 +25,15 @@ static bool http_handler_programs(network_client_t* client, const char* service,
     uint32_t      length;
     uint32_t      count;
     unsigned int  i;
+    program_id_t  id;
 
-    static char   programs[1024] = {0};
+    static char   programs[1024];
 
     (void)service;
     (void)data;
     (void)userdata;
+
+    memset(programs, 0, sizeof(programs));
 
     res = programs_get_count(&count);
     if (res == ERROR_CODE_OK)
@@ -39,7 +42,7 @@ static bool http_handler_programs(network_client_t* client, const char* service,
 
         for (i = 0; i < count; i++)
         {
-            res = programs_get(i, &buffer, &length);
+            res = programs_get_by_index(i, &id, &buffer, &length);
             if (res == ERROR_CODE_OK)
             {
                 JSONStatus_t  status;
@@ -67,7 +70,7 @@ static bool http_handler_programs(network_client_t* client, const char* service,
                           "\"id\":%d,"
                           "\"title\":\"%.*s\""
                         "},",
-                        i,
+                        id,
                         (int)value.length,
                         value.value);
             }
