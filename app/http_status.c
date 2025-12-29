@@ -64,9 +64,9 @@ static void program_status_listener(const program_status_data_t* status, void* u
 
             send_string("data: ");
             send_string("{");
-            send_int("elapsed", status->data.chrono.elapsed*100, false);
-            send_int("remaining", status->data.chrono.remaining*100, false);
-            send_int("total", status->data.chrono.total*100, true);
+            send_int("elapsed", status->data.chrono.elapsed, false);
+            send_int("remaining", status->data.chrono.remaining, false);
+            send_int("total", status->data.chrono.total, true);
             send_string("}");
             send_string("\n");
             send_string("\n");

@@ -21,6 +21,7 @@
 #define PROGRAM_SERIE_COUNT_MAX         CONFIG_PROGRAM_SERIE_COUNT_MAX
 
 #define PROGRAM_STATUS_LISTENER_COUNT_MAX   4
+#define PROGRAM_STATUS_UPDATE_INTERVAL_MS   1000
 
 typedef enum {
     COMMAND_NONE,
@@ -84,6 +85,7 @@ static struct {
     program_state_t state;
     struct {
         uint32_t        time;
+        uint32_t        last_update;
         serie_t*        serie;
         event_t*        event;
     }               running;
@@ -217,6 +219,7 @@ static void program_timer(void)
 
         case PROGRAM_STATE_STARTING:
             program_data.running.time = 0;
+            program_data.running.last_update = 0;
             program_data.running.event = &serie->event[0];
             event = program_data.running.event;
 
@@ -237,11 +240,12 @@ static void program_timer(void)
             break;
 
         case PROGRAM_STATE_RUNNING:
-            program_data.running.time++;
+            program_data.running.time += CONFIG_TIMER_TICK_INTERVAL_MS;
 
-            if (program_data.running.time % 10 == 0)
+            if (program_data.running.time - program_data.running.last_update >= PROGRAM_STATUS_UPDATE_INTERVAL_MS)
             {
                 send_status_chrono(program_data.running.time, serie);
+                program_data.running.last_update = program_data.running.time;
             }
 
             if (program_data.running.time >= event->start_time + event->duration)
@@ -292,6 +296,11 @@ static void program_timer(void)
             status.data.series_stopped.program_id = program_data.program.id;
             status.data.series_stopped.series_index = serie_index(&program_data.program, serie);
             status.data.series_stopped.event_index = event_index(serie, event);
+            call_status_callbacks(&status);
+
+            status.type = PROGRAM_STATUS_TYPE_SERIES_NEXT;
+            status.data.series_next.program_id = program_data.program.id;
+            status.data.series_next.series_index = serie_index(&program_data.program, serie);
             call_status_callbacks(&status);
 
             send_status_chrono(0, NULL);
