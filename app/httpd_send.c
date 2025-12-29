@@ -12,6 +12,8 @@
 #define CONNECTION_CLOSE   "Connection: close\n"
 #define CONTENT_LENGTH     "Content-Length: "
 #define CORS_ACL_ORIGIN    "Access-Control-Allow-Origin: *\n"
+#define CORS_ACL_HEADERS   "Access-Control-Allow-Headers: *\n"
+#define CORS_ACL_METHODS   "Access-Control-Allow-Methods: "
 
 #define CONTENT_TYPE       "Content-Type: "
 #define CONTENT_TYPE_TEXT  "text/plain"
@@ -28,8 +30,8 @@ void httpd_send_header_ok(network_client_t* client)
 {
     httpd_send_string(client, HTTP_1_1);
     httpd_send_string(client, HTTP_200_OK);
-    httpd_send_string(client, CONNECTION_CLOSE);
     httpd_send_string(client, CORS_ACL_ORIGIN);
+    httpd_send_string(client, CONNECTION_CLOSE);
 }
 
 void httpd_send_header_error(network_client_t* client, int error_code)
@@ -47,20 +49,33 @@ void httpd_send_header_error(network_client_t* client, int error_code)
         break;
     }
 
+    httpd_send_string(client, CORS_ACL_ORIGIN);
     httpd_send_string(client, CONNECTION_CLOSE);
+}
+
+void httpd_send_header_methods(network_client_t* client, const char* methods)
+{
+    httpd_send_string(client, CORS_ACL_HEADERS);
+    httpd_send_string(client, CORS_ACL_METHODS);
+    httpd_send_string(client, methods);
+    httpd_send_string(client, "\n");
 }
 
 void httpd_send_header_content(network_client_t* client, uint32_t length, httpd_content_type_t type)
 {
     char    string[11];
 
-    if (length > 0)
+    if (type != HTTPD_CONTENT_TYPE_SSE)
     {
-      snprintf(string, sizeof(string), "%u", length);
+        snprintf(string, sizeof(string), "%u", length);
+        httpd_send_string(client, CONTENT_LENGTH);
+        httpd_send_string(client, string);
+        httpd_send_string(client, "\n");
 
-      httpd_send_string(client, CONTENT_LENGTH);
-      httpd_send_string(client, string);
-      httpd_send_string(client, "\n");
+        if (length <= 0)
+        {
+            return;
+        }
     }
 
     httpd_send_string(client, CONTENT_TYPE);

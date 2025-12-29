@@ -64,13 +64,41 @@ static error_code_t handler_find(handler_t** handler, httpd_method_t method, con
 
         if ((*handler)->method == method && strcmp((*handler)->service, service) == 0)
         {
-             return ERROR_CODE_OK;
+            return ERROR_CODE_OK;
         }
     }
 
     *handler = NULL;
 
     return ERROR_CODE_HTTPD_NO_HANDLER;
+}
+
+static error_code_t methods_find(httpd_method_t methods[], int* count, const char* service)
+{
+    handler_t*      handler;
+    unsigned int    i;
+    int             c;
+
+    c = 0;
+    for (i = 0; i < ARRAY_SIZE(httpd.handlers); i++)
+    {
+        handler = &httpd.handlers[i];
+
+        if (strcmp(handler->service, service) == 0)
+        {
+            methods[c] = handler->method;
+            c++;
+
+            if (c >= *count)
+            {
+                return ERROR_CODE_HTTPD_TOO_MANY_METHODS;
+            }
+        }
+    }
+
+    *count = c;
+
+    return ERROR_CODE_OK;
 }
 
 static bool token_in_list(char token, char* list)
@@ -145,6 +173,10 @@ static httpd_method_t parse_method(const char* method)
     {
         return HTTPD_METHOD_DELETE;
     }
+    else if (strcmp(method, "OPTIONS") == 0)
+    {
+        return HTTPD_METHOD_OPTIONS;
+    }
     else
     {
         return HTTPD_METHOD_NONE;
@@ -184,6 +216,44 @@ static void new_connection(network_client_t* client, void* userdata)
     printf("%s\n", request[1]);
 
     method = parse_method(request[0]);
+
+    if (method == HTTPD_METHOD_OPTIONS)
+    {
+        httpd_method_t  methods[5];
+        int             count;
+        int             i;
+        char            string[64] = {0};
+
+        count = ARRAY_SIZE(methods);
+        res = methods_find(methods, &count, request[1]);
+        if (res != ERROR_CODE_OK)
+        {
+            close_client(client, "Finding methods error");
+            return;
+        }
+
+        for (i = 0; i < count; i++)
+        {
+            switch (methods[i])
+            {
+                case HTTPD_METHOD_GET:      snprintf(&string[strlen(string)], sizeof(string) - strlen(string), "GET,");      break;
+                case HTTPD_METHOD_POST:     snprintf(&string[strlen(string)], sizeof(string) - strlen(string), "POST,");     break;
+                case HTTPD_METHOD_DELETE:   snprintf(&string[strlen(string)], sizeof(string) - strlen(string), "DELETE,");   break;
+                case HTTPD_METHOD_OPTIONS:  break;
+                case HTTPD_METHOD_NONE:     break;
+            }
+        }
+        snprintf(&string[strlen(string)], sizeof(string) - strlen(string), "OPTIONS,");
+
+        httpd_send_header_ok(client);
+        httpd_send_header_methods(client, string);
+        httpd_send_header_content(client, 0, HTTPD_CONTENT_TYPE_TEXT);
+        httpd_send_header_end(client);
+
+        close_client(client, "Done");
+
+        return;
+    }
 
     res = handler_find(&handler, method, request[1]);
     if (res != ERROR_CODE_OK)

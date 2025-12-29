@@ -17,6 +17,7 @@ typedef enum {
     HTTPD_METHOD_GET,
     HTTPD_METHOD_POST,
     HTTPD_METHOD_DELETE,
+    HTTPD_METHOD_OPTIONS,
 } httpd_method_t;
 
 error_code_t httpd_register_handler(httpd_method_t method, const char* service, httpd_handler_t handler, void* userdata);

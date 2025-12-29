@@ -20,6 +20,7 @@ typedef enum {
 void httpd_send_header_ok(network_client_t* client);
 void httpd_send_header_error(network_client_t* client, int error_code);
 
+void httpd_send_header_methods(network_client_t* client, const char* methods);
 void httpd_send_header_content(network_client_t* client, uint32_t length, httpd_content_type_t type);
 void httpd_send_header_end(network_client_t* client);
 
